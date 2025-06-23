@@ -19,7 +19,7 @@
     }
     .content {
       padding: 20px;
-      max-width: 800px;
+      max-width: 600px;
       margin: 0 auto;
     }
     ul#employee-list {
@@ -45,13 +45,11 @@
     .offline {
       background-color: #dc3545;
     }
-    #logout-btn {
-      background-color: #dc3545;
-      color: white;
-      padding: 10px 20px;
-      margin-top: 15px;
-      border: none;
-      cursor: pointer;
+    #status-msg {
+      font-weight: bold;
+      color: green;
+      padding: 10px 0;
+      text-align: center;
     }
   </style>
 </head>
@@ -59,24 +57,26 @@
   <div class="navbar">
     <h1>Welcome to Mabe Employee Dashboard</h1>
     <p id="user-info"></p>
-    <button id="logout-btn">Clock Out & Logout</button>
   </div>
 
   <div class="content">
     <h2>Employee List</h2>
+    <div id="status-msg"></div>
     <ul id="employee-list"></ul>
   </div>
 
+  <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
     const socket = io('https://mabe-backend.onrender.com');
-    const user = JSON.parse(localStorage.getItem('user'));
 
+    const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
       alert('You are not logged in!');
       window.location.href = '/';
     }
 
+    // Show user info in navbar
     document.getElementById('user-info').textContent = `Logged in as: ${user.name} (${user.role})`;
 
     const employeeListEl = document.getElementById('employee-list');
@@ -89,6 +89,8 @@
         <strong>${emp.name}</strong><br/>
         Email: ${emp.email}<br/>
         Status: <span class="status ${statusClass}">${emp.status}</span><br/>
+        <u>Tasks:</u>
+        <ul>${emp.tasks?.map(t => `<li>${t}</li>`).join('') || '<li>No tasks</li>'}</ul>
         <u>Clock-ins:</u>
         <ul>${emp.clockIns.map(c => `<li>${new Date(c).toLocaleString()}</li>`).join('')}</ul>
       `;
@@ -96,9 +98,13 @@
     }
 
     async function loadEmployees() {
-      let url = user.role === 'admin'
-        ? 'https://mabe-backend.onrender.com/employees'
-        : `https://mabe-backend.onrender.com/employee/${user.email}`;
+      let url = '';
+
+      if (user.role === 'admin') {
+        url = 'https://mabe-backend.onrender.com/employees';
+      } else {
+        url = `https://mabe-backend.onrender.com/employee/${user.email}`;
+      }
 
       try {
         const res = await fetch(url);
@@ -106,10 +112,16 @@
 
         employeeListEl.innerHTML = '';
 
-        if (Array.isArray(data)) {
-          data.forEach(emp => employeeListEl.appendChild(createUserListItem(emp)));
+        if (user.role === 'admin') {
+          data.forEach(emp => {
+            employeeListEl.appendChild(createUserListItem(emp));
+          });
         } else {
           employeeListEl.appendChild(createUserListItem(data));
+          // Show employee's own status
+          if (data.status === 'online') {
+            document.getElementById('status-msg').textContent = '✅ You are online';
+          }
         }
       } catch (err) {
         console.error('Failed to load employees', err);
@@ -118,6 +130,7 @@
 
     loadEmployees();
 
+    // Tell server we're online
     socket.emit('login', user.email);
 
     socket.on('userStatusUpdate', (users) => {
@@ -127,13 +140,6 @@
           employeeListEl.appendChild(createUserListItem(emp));
         });
       }
-    });
-
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      socket.emit('logout', user.email);
-      localStorage.clear();
-      socket.disconnect();
-      window.location.href = '/';
     });
   </script>
 </body>
