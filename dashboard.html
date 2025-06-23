@@ -3,86 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard | Mabe Monitor</title>
+  <title>Mabe Group Employee Dashboard</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
-    }
-    .navbar {
-      background-color: #004d7a;
-      color: white;
-      padding: 15px;
-      text-align: center;
-    }
-    .content {
-      padding: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    ul#employee-list {
-      list-style-type: none;
-      padding: 0;
-    }
-    ul#employee-list li {
-      background: white;
-      margin: 8px 0;
-      padding: 12px;
-      border-radius: 6px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-    }
-    .status {
-      font-weight: bold;
-      padding: 4px 8px;
-      border-radius: 4px;
-      color: white;
-    }
-    .online {
-      background-color: #28a745; /* green */
-    }
-    .offline {
-      background-color: #dc3545; /* red */
-    }
+    body { font-family: Arial, sans-serif; background: #f0f8ff; margin: 0; padding: 0; }
+    .navbar { background-color: #004d7a; color: white; padding: 15px; text-align: center; }
+    .content { padding: 20px; max-width: 700px; margin: 0 auto; }
+    ul#employee-list { list-style-type: none; padding: 0; }
+    ul#employee-list li { background: white; margin: 8px 0; padding: 12px; border-radius: 6px; box-shadow: 0 0 6px rgba(0,0,0,0.1); }
+    .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; color: white; }
+    .online { background-color: #28a745; } /* green */
+    .offline { background-color: #dc3545; } /* red */
   </style>
 </head>
 <body>
   <div class="navbar">
-    <h1>Welcome to Mabe Employee Dashboard</h1>
+    <h1>Mabe Employee Dashboard</h1>
     <p id="user-info"></p>
   </div>
 
   <div class="content">
-    <h2>Employee List</h2>
+    <h2>Employees</h2>
     <ul id="employee-list"></ul>
   </div>
 
-  <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io('https://mabe-backend.onrender.com'); // <-- Your backend URL
+    const socket = io('https://mabe-backend.onrender.com'); // Backend URL
 
-    // Get logged-in user info from localStorage
+    // Get logged-in user info
     const user = JSON.parse(localStorage.getItem('user'));
-
     if (!user) {
-      alert('You are not logged in!');
-      window.location.href = '/'; // Redirect to login page
+      alert('You are not logged in');
+      window.location.href = '/';
     }
 
-    // Show logged-in user info in navbar
     document.getElementById('user-info').textContent = `Logged in as: ${user.name} (${user.role})`;
 
     const employeeListEl = document.getElementById('employee-list');
 
-    // Helper: display user data
-    function createUserListItem(emp) {
+    // Render employee item
+    function createEmployeeItem(emp) {
       const li = document.createElement('li');
       const statusClass = emp.status === 'online' ? 'online' : 'offline';
-
       li.innerHTML = `
-        <strong>${emp.name}</strong> - ${emp.position} (${emp.department})<br/>
+        <strong>${emp.name}</strong> — ${emp.position} (${emp.department})<br/>
         Email: ${emp.email}<br/>
         Status: <span class="status ${statusClass}">${emp.status}</span><br/>
         <u>Tasks:</u>
@@ -93,15 +57,10 @@
       return li;
     }
 
-    // Function to load employees (all if admin, self if employee)
     async function loadEmployees() {
-      let url = '';
-
-      if (user.role === 'admin') {
-        url = 'https://mabe-backend.onrender.com/employees';
-      } else {
-        url = `https://mabe-backend.onrender.com/employee/${user.email}`;
-      }
+      let url = user.role === 'admin' 
+        ? 'https://mabe-backend.onrender.com/employees' 
+        : `https://mabe-backend.onrender.com/employee/${user.email}`;
 
       try {
         const res = await fetch(url);
@@ -111,25 +70,28 @@
 
         if (user.role === 'admin') {
           data.forEach(emp => {
-            employeeListEl.appendChild(createUserListItem(emp));
+            employeeListEl.appendChild(createEmployeeItem(emp));
           });
         } else {
-          employeeListEl.appendChild(createUserListItem(data));
+          employeeListEl.appendChild(createEmployeeItem(data));
         }
-      } catch (err) {
-        console.error('Failed to load employees', err);
+      } catch (error) {
+        console.error('Failed to load employees:', error);
       }
     }
 
-    // Load employees once on page load
+    // Initial load
     loadEmployees();
 
-    // Listen for live status updates from backend
+    // Emit login event so backend marks user online
+    socket.emit('login', user.email);
+
+    // Listen to real-time status updates
     socket.on('userStatusUpdate', (users) => {
       if (user.role === 'admin') {
         employeeListEl.innerHTML = '';
         users.forEach(emp => {
-          employeeListEl.appendChild(createUserListItem(emp));
+          employeeListEl.appendChild(createEmployeeItem(emp));
         });
       }
     });
