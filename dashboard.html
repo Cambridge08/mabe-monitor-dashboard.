@@ -1,69 +1,136 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-  <title>Mabe Dashboard</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard | Mabe Monitor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e6f0f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .navbar {
+      background-color: #004d7a;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    .content {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    ul#employee-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    ul#employee-list li {
+      background: white;
+      margin: 8px 0;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    ul#employee-list li:hover {
+      transform: scale(1.01);
+    }
+    .status {
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: white;
+    }
+    .online {
+      background-color: #28a745;
+    }
+    .offline {
+      background-color: #dc3545;
+    }
+    .clockout-button {
+      background-color: #ff9800;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      margin-top: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>Mabe Employee Dashboard</h1>
-  <p id="user-info"></p>
-  <button onclick="logoutUser()">Logout</button>
-
-  <h2>Employee List</h2>
-  <ul id="employee-list"></ul>
-
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
+  <div class="navbar">
+    <h1>Welcome to Mabe Employee Dashboard</h1>
+    <p id="user-info"></p>
+  </div>  <div class="content">
+    <h2>Employee List</h2>
+    <ul id="employee-list"></ul>
+  </div>  <!-- Socket.IO client -->  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>  <script>
     const socket = io('https://mabe-backend.onrender.com');
     const user = JSON.parse(localStorage.getItem('user'));
 
     if (!user) {
-      alert('Please login first');
+      alert('You are not logged in!');
       window.location.href = '/';
     }
 
     document.getElementById('user-info').textContent = `Logged in as: ${user.name} (${user.role})`;
 
-    function logoutUser() {
-      socket.emit('logout', user.email);
-      localStorage.removeItem('user');
-      alert('You have been logged out.');
-      window.location.href = '/';
-    }
+    const employeeListEl = document.getElementById('employee-list');
 
-    function createUserItem(emp) {
+    function createUserListItem(emp) {
       const li = document.createElement('li');
-      const status = emp.status === "online" ? "🟢" : "🔴";
-      li.innerHTML = `<b>${emp.name}</b> (${emp.email}) - ${status}<br/>
-        <small>${emp.clockIns.join('<br/>')}</small>`;
+      const statusClass = emp.status === 'online' ? 'online' : 'offline';
+      const clockOutButton = user.email === emp.email ? `<button class="clockout-button" onclick="handleClockOut('${emp.email}')">Clock Out</button>` : '';
+
+      li.innerHTML = `
+        <strong>${emp.name}</strong><br/>
+        Email: ${emp.email}<br/>
+        Status: <span class="status ${statusClass}">${emp.status}</span><br/>
+        <u>Tasks:</u>
+        <ul>${(emp.tasks || []).map(t => `<li>${t}</li>`).join('')}</ul>
+        <u>Clock-ins:</u>
+        <ul>${(emp.clockIns || []).map(c => `<li>${new Date(c).toLocaleString()}</li>`).join('')}</ul>
+        ${clockOutButton}
+      `;
       return li;
     }
 
     async function loadEmployees() {
-      let url = user.role === "admin"
+      let url = user.role === 'admin'
         ? 'https://mabe-backend.onrender.com/employees'
         : `https://mabe-backend.onrender.com/employee/${user.email}`;
 
-      const res = await fetch(url);
-      const data = await res.json();
-
-      const list = document.getElementById('employee-list');
-      list.innerHTML = '';
-      if (Array.isArray(data)) {
-        data.forEach(emp => list.appendChild(createUserItem(emp)));
-      } else {
-        list.appendChild(createUserItem(data));
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        employeeListEl.innerHTML = '';
+        if (Array.isArray(data)) {
+          data.forEach(emp => employeeListEl.appendChild(createUserListItem(emp)));
+        } else {
+          employeeListEl.appendChild(createUserListItem(data));
+        }
+      } catch (err) {
+        console.error('Failed to load employees', err);
       }
     }
 
-    socket.on('userStatusUpdate', users => {
-      const list = document.getElementById('employee-list');
-      list.innerHTML = '';
-      users.forEach(emp => list.appendChild(createUserItem(emp)));
-    });
+    function handleClockOut(email) {
+      socket.emit('clockOut', email);
+      alert("Clocked out");
+    }
 
     loadEmployees();
-  </script>
-</body>
+
+    socket.on('userStatusUpdate', (users) => {
+      if (user.role === 'admin') {
+        employeeListEl.innerHTML = '';
+        users.forEach(emp => {
+          employeeListEl.appendChild(createUserListItem(emp));
+        });
+      }
+    });
+  </script></body>
 </html>
