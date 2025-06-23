@@ -31,7 +31,7 @@
     }
     .content {
       padding: 20px;
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
     }
     ul#employee-list {
@@ -63,7 +63,6 @@
       padding: 10px 0;
       text-align: center;
     }
-    /* New employee form styles */
     #add-employee-form {
       background: white;
       padding: 20px;
@@ -111,7 +110,7 @@
     <div id="status-msg"></div>
     <ul id="employee-list"></ul>
 
-    <!-- Add Employee Form (Only admin should see this) -->
+    <!-- Admin Only Section -->
     <div id="add-employee-section" style="display:none;">
       <h2>Add New Employee</h2>
       <form id="add-employee-form">
@@ -130,7 +129,6 @@
     </div>
   </div>
 
-  <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
     const socket = io('https://mabe-backend.onrender.com');
@@ -161,6 +159,7 @@
     });
 
     const employeeListEl = document.getElementById('employee-list');
+    const statusMsgEl = document.getElementById('status-msg');
 
     function createUserListItem(emp) {
       const li = document.createElement('li');
@@ -195,7 +194,9 @@
         } else {
           employeeListEl.appendChild(createUserListItem(data));
           if (data.status === 'online') {
-            document.getElementById('status-msg').textContent = '✅ You are online';
+            statusMsgEl.textContent = '✅ You are online';
+          } else {
+            statusMsgEl.textContent = '';
           }
         }
       } catch (err) {
@@ -204,7 +205,6 @@
     }
 
     loadEmployees();
-
     socket.emit('login', user.email);
 
     socket.on('userStatusUpdate', (users) => {
@@ -216,7 +216,6 @@
       }
     });
 
-    // Handle add employee form submit
     document.getElementById('add-employee-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -236,7 +235,7 @@
 
         if (res.ok) {
           form.reset();
-          loadEmployees(); // refresh list
+          loadEmployees();
         } else {
           alert(data.message);
         }
