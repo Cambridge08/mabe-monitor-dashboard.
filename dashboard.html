@@ -42,4 +42,40 @@
     <h1>Welcome to Mabe Employee Dashboard</h1>
   </div>
   <div class="content">
-    <h2>✅ Login Successful</
+    <h2>✅ Login Successful</h2>
+    <p>This is your admin dashboard. Below is the employee list:</p>
+
+    <h3>Employee List</h3>
+    <ul id="employee-list">Loading employees...</ul>
+  </div>
+
+  <script>
+    async function loadEmployees() {
+      try {
+        const res = await fetch('https://mabe-backend.onrender.com/employees');
+        if (!res.ok) throw new Error('Failed to fetch employees: ' + res.status);
+        const employees = await res.json();
+
+        const list = document.getElementById('employee-list');
+        list.innerHTML = '';
+
+        if (employees.length === 0) {
+          list.textContent = 'No employees found.';
+          return;
+        }
+
+        employees.forEach(emp => {
+          const li = document.createElement('li');
+          li.textContent = `${emp.name} — ${emp.position}`;
+          list.appendChild(li);
+        });
+      } catch (error) {
+        console.error(error);
+        document.getElementById('employee-list').textContent = 'Error loading employees.';
+      }
+    }
+
+    loadEmployees();
+  </script>
+</body>
+</html>
