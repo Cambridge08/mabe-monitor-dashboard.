@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard | Mabe Monitor</title>
+  <title>Mabe Group | Admin Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,87 +14,66 @@
     .navbar {
       background-color: #004d7a;
       color: white;
-      padding: 15px;
+      padding: 20px;
       text-align: center;
     }
     .content {
       padding: 20px;
-      text-align: center;
     }
-    ul#employee-list {
-      max-width: 400px;
-      margin: 20px auto;
-      padding: 0;
-      list-style-type: none;
-      text-align: left;
-    }
-    ul#employee-list li {
+    .employee-card {
       background: white;
-      margin: 6px 0;
-      padding: 12px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    #logoutBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #004d7a;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    .employee-card h3 {
+      margin: 0;
+      color: #004d7a;
     }
-    #logoutBtn:hover {
-      background: #00335a;
+    .employee-card p {
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
   <div class="navbar">
-    <h1>Welcome to Mabe Employee Dashboard</h1>
+    <h1>Mabe Group Monitoring Dashboard</h1>
+    <p>Administrator View | 👩🏽‍💼👨🏽‍💼</p>
   </div>
-  <div class="content">
-    <h2>✅ Login Successful</h2>
-    <p>This is your admin dashboard. Below is the employee list:</p>
 
-    <h3>Employee List</h3>
-    <ul id="employee-list">Loading employees...</ul>
-
-    <button id="logoutBtn">Logout</button>
+  <div class="content" id="employee-container">
+    <h2>📋 Employee List with Tasks & Clock-in</h2>
+    <p>Loading employee data...</p>
   </div>
 
   <script>
-    async function loadEmployees() {
-      try {
-        const res = await fetch('https://mabe-backend.onrender.com/employees');
-        if (!res.ok) throw new Error('Failed to fetch employees: ' + res.status);
-        const employees = await res.json();
+    // Fetch employee data from your backend
+    fetch('https://mabe-backend.onrender.com/employees')
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('employee-container');
+        container.innerHTML = '';
 
-        const list = document.getElementById('employee-list');
-        list.innerHTML = '';
+        data.forEach(employee => {
+          const card = document.createElement('div');
+          card.className = 'employee-card';
 
-        if (employees.length === 0) {
-          list.textContent = 'No employees found.';
-          return;
-        }
+          card.innerHTML = `
+            <h3>${employee.name}</h3>
+            <p><strong>Role:</strong> ${employee.role}</p>
+            <p><strong>Department:</strong> ${employee.department}</p>
+            <p><strong>Task:</strong> ${employee.task}</p>
+            <p><strong>Clock-in:</strong> ${employee.clockIn}</p>
+          `;
 
-        employees.forEach(emp => {
-          const li = document.createElement('li');
-          li.textContent = `${emp.name} — ${emp.position}`;
-          list.appendChild(li);
+          container.appendChild(card);
         });
-      } catch (error) {
-        console.error(error);
-        document.getElementById('employee-list').textContent = 'Error loading employees.';
-      }
-    }
-
-    loadEmployees();
-
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      alert('Logged out! (You can add real logout logic here)');
-      window.location.href = "/"; // Redirect to home or login page
-    });
+      })
+      .catch(err => {
+        document.getElementById('employee-container').innerHTML = `<p style="color: red;">Failed to load employee data.</p>`;
+        console.error(err);
+      });
   </script>
 </body>
 </html>
