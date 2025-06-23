@@ -75,9 +75,11 @@
 
       const data = await response.json();
 
-      if (response.ok) {
+    if (response.ok) {
   alert('✅ Login successful: ' + data.message);
-  window.location.href = "/dashboard.html";  // <--- THIS needs to be active (uncommented)
+  setTimeout(() => {
+    window.location.href = "/dashboard.html";
+  }, 100);  // 100 ms delay before redirect
 } else {
   alert('❌ Login failed: ' + data.message);
-      }
+    }
