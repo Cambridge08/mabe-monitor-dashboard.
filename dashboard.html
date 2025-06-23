@@ -63,6 +63,40 @@
       padding: 10px 0;
       text-align: center;
     }
+    /* New employee form styles */
+    #add-employee-form {
+      background: white;
+      padding: 20px;
+      margin-top: 40px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    }
+    #add-employee-form input,
+    #add-employee-form select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    #add-employee-form button {
+      background-color: #007bb5;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    #add-result {
+      margin-top: 10px;
+      font-weight: bold;
+      color: green;
+    }
   </style>
 </head>
 <body>
@@ -76,6 +110,24 @@
     <h2>Employee List</h2>
     <div id="status-msg"></div>
     <ul id="employee-list"></ul>
+
+    <!-- Add Employee Form (Only admin should see this) -->
+    <div id="add-employee-section" style="display:none;">
+      <h2>Add New Employee</h2>
+      <form id="add-employee-form">
+        <input type="text" name="name" placeholder="Full Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <select name="role" required>
+          <option value="employee">Employee</option>
+          <option value="admin">Admin</option>
+        </select>
+        <input type="text" name="department" placeholder="Department (optional)" />
+        <input type="text" name="position" placeholder="Position (optional)" />
+        <button type="submit">➕ Add Employee</button>
+      </form>
+      <div id="add-result"></div>
+    </div>
   </div>
 
   <!-- Socket.IO client -->
@@ -91,12 +143,15 @@
 
     document.getElementById('user-info').textContent = `Logged in as: ${user.name} (${user.role})`;
 
+    if (user.role === 'admin') {
+      document.getElementById('add-employee-section').style.display = 'block';
+    }
+
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      // Send clock-out to backend
       fetch(`https://mabe-backend.onrender.com/clockout/${user.email}`, {
         method: 'POST'
       }).then(() => {
-        socket.emit('logout', user.email); // Notify via socket
+        socket.emit('logout', user.email);
         localStorage.removeItem('user');
         window.location.href = '/';
       }).catch((err) => {
@@ -148,6 +203,8 @@
       }
     }
 
+    loadEmployees();
+
     socket.emit('login', user.email);
 
     socket.on('userStatusUpdate', (users) => {
@@ -159,7 +216,35 @@
       }
     });
 
-    loadEmployees();
+    // Handle add employee form submit
+    document.getElementById('add-employee-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const formData = new FormData(form);
+      const newEmployee = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('https://mabe-backend.onrender.com/add-employee', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEmployee)
+        });
+
+        const data = await res.json();
+        document.getElementById('add-result').textContent = data.message;
+
+        if (res.ok) {
+          form.reset();
+          loadEmployees(); // refresh list
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        alert('Failed to add employee');
+        console.error(err);
+      }
+    });
   </script>
 </body>
 </html>
