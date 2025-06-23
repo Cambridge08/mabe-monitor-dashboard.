@@ -110,7 +110,6 @@
     <div id="status-msg"></div>
     <ul id="employee-list"></ul>
 
-    <!-- Admin Only Section -->
     <div id="add-employee-section" style="display:none;">
       <h2>Add New Employee</h2>
       <form id="add-employee-form">
@@ -178,7 +177,7 @@
     }
 
     async function loadEmployees() {
-      let url = user.role === 'admin'
+      const url = user.role === 'admin'
         ? 'https://mabe-backend.onrender.com/employees'
         : `https://mabe-backend.onrender.com/employee/${user.email}`;
 
@@ -204,8 +203,9 @@
       }
     }
 
-    loadEmployees();
+    // First emit login, then reload list after small delay
     socket.emit('login', user.email);
+    setTimeout(loadEmployees, 500); // Wait for server to update status
 
     socket.on('userStatusUpdate', (users) => {
       if (user.role === 'admin') {
@@ -213,6 +213,13 @@
         users.forEach(emp => {
           employeeListEl.appendChild(createUserListItem(emp));
         });
+      } else {
+        const me = users.find(u => u.email === user.email);
+        if (me) {
+          employeeListEl.innerHTML = '';
+          employeeListEl.appendChild(createUserListItem(me));
+          statusMsgEl.textContent = me.status === 'online' ? '✅ You are online' : '';
+        }
       }
     });
 
