@@ -1,214 +1,98 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mabe Group Monitor Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mabe Employee Dashboard</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
       background: #f0f8ff;
+      margin: 0;
+      padding: 0;
     }
     .navbar {
       background-color: #004d7a;
       color: white;
-      padding: 20px;
+      padding: 15px;
       text-align: center;
     }
     .content {
       padding: 20px;
+      text-align: center;
+    }
+    ul#employee-list {
+      list-style-type: none;
+      padding: 0;
       max-width: 600px;
-      margin: auto;
+      margin: 0 auto;
     }
-    .login-box, .dashboard {
+    li.employee {
       background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-top: 30px;
-    }
-    input[type="email"], input[type="password"] {
-      width: 100%;
       padding: 12px;
-      margin: 10px 0;
-      box-sizing: border-box;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #007bb5;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 10px;
     }
-    .employee-card {
-      background: #e7f0fa;
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .employee-card h3 {
-      margin: 0 0 8px 0;
-      color: #004d7a;
-    }
-    .employee-card p {
-      margin: 4px 0;
-    }
-    .logout-btn {
-      margin-top: 20px;
-      background: #cc0000;
-    }
+    .online { background: green; }
+    .offline { background: red; }
   </style>
 </head>
 <body>
   <div class="navbar">
-    <h1>Mabe Group Monitoring Dashboard</h1>
+    <h1>👥 Mabe Group Employee Dashboard</h1>
   </div>
-
   <div class="content">
-
-    <!-- Login Form -->
-    <div class="login-box" id="login-box">
-      <h2>Admin/Employee Login</h2>
-      <form id="login-form">
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required placeholder="Enter your email" />
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required placeholder="Enter your password" />
-        <button type="submit">Login</button>
-      </form>
-      <p id="login-error" style="color:red; display:none;"></p>
-    </div>
-
-    <!-- Dashboard -->
-    <div class="dashboard" id="dashboard" style="display:none;">
-      <h2 id="dashboard-title"></h2>
-      <div id="dashboard-content"></div>
-      <button class="logout-btn" id="logout-btn">Logout</button>
-    </div>
-
+    <h2>Live Employee Status</h2>
+    <ul id="employee-list"></ul>
   </div>
 
   <script>
-    const loginForm = document.getElementById('login-form');
-    const loginBox = document.getElementById('login-box');
-    const dashboard = document.getElementById('dashboard');
-    const dashboardTitle = document.getElementById('dashboard-title');
-    const dashboardContent = document.getElementById('dashboard-content');
-    const loginError = document.getElementById('login-error');
-    const logoutBtn = document.getElementById('logout-btn');
+    const socket = io('https://mabe-backend.onrender.com'); // Update if your backend URL is different
+    const email = "motsimabe@gmail.com"; // Your email as the boss/admin
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      loginError.style.display = 'none';
+    // Notify server you're online
+    socket.emit('userOnline', email);
 
-      const email = loginForm.email.value.trim();
-      const password = loginForm.password.value.trim();
+    // Fetch employee list
+    function fetchEmployees() {
+      fetch('https://mabe-backend.onrender.com/employees')
+        .then(res => res.json())
+        .then(employees => renderEmployees(employees));
+    }
 
-      try {
-        const res = await fetch('https://mabe-backend.onrender.com/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+    // Render employees
+    function renderEmployees(employees) {
+      const list = document.getElementById('employee-list');
+      list.innerHTML = '';
+      employees.forEach(emp => {
+        const li = document.createElement('li');
+        li.className = 'employee';
+        li.innerHTML = `
+          <strong>${emp.name}</strong> - ${emp.position} (${emp.department})
+          <span class="status-dot ${emp.online ? 'online' : 'offline'}"></span>
+        `;
+        list.appendChild(li);
+      });
+    }
 
-        const data = await res.json();
-
-        if (!res.ok) {
-          loginError.textContent = data.message || 'Login failed';
-          loginError.style.display = 'block';
-          return;
-        }
-
-        const user = data.user;
-
-        // Hide login, show dashboard
-        loginBox.style.display = 'none';
-        dashboard.style.display = 'block';
-
-        if (user.role === 'admin') {
-          dashboardTitle.textContent = `Welcome Admin ${user.name}`;
-          showAllEmployees();
-        } else {
-          dashboardTitle.textContent = `Welcome ${user.name}`;
-          showSingleEmployee(user.email);
-        }
-
-      } catch (error) {
-        loginError.textContent = 'Network error, try again later.';
-        loginError.style.display = 'block';
-        console.error(error);
-      }
+    // Update live status
+    socket.on('updateUsers', users => {
+      renderEmployees(users);
     });
 
-    logoutBtn.addEventListener('click', () => {
-      dashboard.style.display = 'none';
-      loginBox.style.display = 'block';
-      loginForm.reset();
-      dashboardContent.innerHTML = '';
-      loginError.style.display = 'none';
-    });
-
-    async function showAllEmployees() {
-      dashboardContent.innerHTML = '<p>Loading employees...</p>';
-      try {
-        const res = await fetch('https://mabe-backend.onrender.com/employees');
-        const employees = await res.json();
-
-        if (employees.length === 0) {
-          dashboardContent.innerHTML = '<p>No employees found.</p>';
-          return;
-        }
-
-        dashboardContent.innerHTML = '';
-        employees.forEach(emp => {
-          dashboardContent.appendChild(createEmployeeCard(emp));
-        });
-      } catch {
-        dashboardContent.innerHTML = '<p>Error loading employees.</p>';
-      }
-    }
-
-    async function showSingleEmployee(email) {
-      dashboardContent.innerHTML = '<p>Loading your profile...</p>';
-      try {
-        const res = await fetch(`https://mabe-backend.onrender.com/employee/${encodeURIComponent(email)}`);
-        if (!res.ok) throw new Error('Not found');
-        const emp = await res.json();
-
-        dashboardContent.innerHTML = '';
-        dashboardContent.appendChild(createEmployeeCard(emp));
-      } catch {
-        dashboardContent.innerHTML = '<p>Error loading your profile.</p>';
-      }
-    }
-
-    function createEmployeeCard(emp) {
-      const card = document.createElement('div');
-      card.className = 'employee-card';
-
-      // Format clock-in dates nicely
-      const clockInsFormatted = emp.clockIns && emp.clockIns.length
-        ? emp.clockIns.map(dateStr => new Date(dateStr).toLocaleString()).join('<br>')
-        : 'No clock-ins recorded';
-
-      // Format tasks as bullet list
-      const tasksFormatted = emp.tasks && emp.tasks.length
-        ? `<ul>${emp.tasks.map(task => `<li>${task}</li>`).join('')}</ul>`
-        : 'No tasks assigned';
-
-      card.innerHTML = `
-        <h3>${emp.name}</h3>
-        <p><strong>Position:</strong> ${emp.position}</p>
-        <p><strong>Department:</strong> ${emp.department}</p>
-        <p><strong>Tasks:</strong><br>${tasksFormatted}</p>
-        <p><strong>Clock-in Times:</strong><br>${clockInsFormatted}</p>
-      `;
-      return card;
-    }
+    fetchEmployees();
   </script>
 </body>
 </html>
