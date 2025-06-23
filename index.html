@@ -58,7 +58,12 @@
     </form>
   </div>
 
+  <!-- Socket.IO client script -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
   <script>
+    const socket = io('https://mabe-backend.onrender.com'); // <-- Your backend URL
+
     document.getElementById('login-form').addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -75,10 +80,17 @@
         const data = await response.json();
 
         if (response.ok) {
+          // Emit login event to backend via Socket.IO
+          socket.emit('login', email);
+
+          // Optionally save user info locally
+          localStorage.setItem('user', JSON.stringify(data.user));
+
           alert('✅ Login successful: ' + data.message);
+
           setTimeout(() => {
             window.location.href = "/dashboard.html";
-          }, 150);  // Delay so alert can show before redirect
+          }, 150); // Short delay to let alert show
         } else {
           alert('❌ Login failed: ' + data.message);
         }
