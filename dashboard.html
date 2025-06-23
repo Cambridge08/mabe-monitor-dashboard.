@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -6,10 +7,9 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #e6f0f8;
+      background: #f0f8ff;
       margin: 0;
       padding: 0;
-      color: #333;
     }
     .navbar {
       background-color: #004d7a;
@@ -31,11 +31,7 @@
       margin: 8px 0;
       padding: 12px;
       border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-    }
-    ul#employee-list li:hover {
-      transform: scale(1.01);
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
     }
     .status {
       font-weight: bold;
@@ -49,13 +45,12 @@
     .offline {
       background-color: #dc3545;
     }
-    .clockout-button {
-      background-color: #ff9800;
-      border: none;
+    #logout-btn {
+      background-color: #dc3545;
       color: white;
-      padding: 5px 10px;
-      margin-top: 8px;
-      border-radius: 4px;
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
       cursor: pointer;
     }
   </style>
@@ -64,10 +59,16 @@
   <div class="navbar">
     <h1>Welcome to Mabe Employee Dashboard</h1>
     <p id="user-info"></p>
-  </div>  <div class="content">
+    <button id="logout-btn">Clock Out & Logout</button>
+  </div>
+
+  <div class="content">
     <h2>Employee List</h2>
     <ul id="employee-list"></ul>
-  </div>  <!-- Socket.IO client -->  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>  <script>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
     const socket = io('https://mabe-backend.onrender.com');
     const user = JSON.parse(localStorage.getItem('user'));
 
@@ -83,17 +84,13 @@
     function createUserListItem(emp) {
       const li = document.createElement('li');
       const statusClass = emp.status === 'online' ? 'online' : 'offline';
-      const clockOutButton = user.email === emp.email ? `<button class="clockout-button" onclick="handleClockOut('${emp.email}')">Clock Out</button>` : '';
 
       li.innerHTML = `
         <strong>${emp.name}</strong><br/>
         Email: ${emp.email}<br/>
         Status: <span class="status ${statusClass}">${emp.status}</span><br/>
-        <u>Tasks:</u>
-        <ul>${(emp.tasks || []).map(t => `<li>${t}</li>`).join('')}</ul>
         <u>Clock-ins:</u>
-        <ul>${(emp.clockIns || []).map(c => `<li>${new Date(c).toLocaleString()}</li>`).join('')}</ul>
-        ${clockOutButton}
+        <ul>${emp.clockIns.map(c => `<li>${new Date(c).toLocaleString()}</li>`).join('')}</ul>
       `;
       return li;
     }
@@ -106,7 +103,9 @@
       try {
         const res = await fetch(url);
         const data = await res.json();
+
         employeeListEl.innerHTML = '';
+
         if (Array.isArray(data)) {
           data.forEach(emp => employeeListEl.appendChild(createUserListItem(emp)));
         } else {
@@ -117,12 +116,9 @@
       }
     }
 
-    function handleClockOut(email) {
-      socket.emit('clockOut', email);
-      alert("Clocked out");
-    }
-
     loadEmployees();
+
+    socket.emit('login', user.email);
 
     socket.on('userStatusUpdate', (users) => {
       if (user.role === 'admin') {
@@ -132,5 +128,13 @@
         });
       }
     });
-  </script></body>
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      socket.emit('logout', user.email);
+      localStorage.clear();
+      socket.disconnect();
+      window.location.href = '/';
+    });
+  </script>
+</body>
 </html>
