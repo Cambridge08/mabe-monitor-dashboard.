@@ -35,6 +35,18 @@
       border-radius: 5px;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
+    #logoutBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #004d7a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #logoutBtn:hover {
+      background: #00335a;
+    }
   </style>
 </head>
 <body>
@@ -47,6 +59,8 @@
 
     <h3>Employee List</h3>
     <ul id="employee-list">Loading employees...</ul>
+
+    <button id="logoutBtn">Logout</button>
   </div>
 
   <script>
@@ -76,6 +90,11 @@
     }
 
     loadEmployees();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      alert('Logged out! (You can add real logout logic here)');
+      window.location.href = "/"; // Redirect to home or login page
+    });
   </script>
 </body>
 </html>
