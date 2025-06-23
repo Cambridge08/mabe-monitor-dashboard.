@@ -16,6 +16,18 @@
       color: white;
       padding: 15px;
       text-align: center;
+      position: relative;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background-color: #dc3545;
+      border: none;
+      padding: 8px 16px;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
     }
     .content {
       padding: 20px;
@@ -57,6 +69,7 @@
   <div class="navbar">
     <h1>Welcome to Mabe Employee Dashboard</h1>
     <p id="user-info"></p>
+    <button class="logout-btn" id="logoutBtn">Clock Out & Logout</button>
   </div>
 
   <div class="content">
@@ -76,8 +89,21 @@
       window.location.href = '/';
     }
 
-    // Show user info in navbar
     document.getElementById('user-info').textContent = `Logged in as: ${user.name} (${user.role})`;
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      // Send clock-out to backend
+      fetch(`https://mabe-backend.onrender.com/clockout/${user.email}`, {
+        method: 'POST'
+      }).then(() => {
+        socket.emit('logout', user.email); // Notify via socket
+        localStorage.removeItem('user');
+        window.location.href = '/';
+      }).catch((err) => {
+        console.error('Clock-out failed', err);
+        alert('Clock-out failed. Try again.');
+      });
+    });
 
     const employeeListEl = document.getElementById('employee-list');
 
@@ -98,18 +124,13 @@
     }
 
     async function loadEmployees() {
-      let url = '';
-
-      if (user.role === 'admin') {
-        url = 'https://mabe-backend.onrender.com/employees';
-      } else {
-        url = `https://mabe-backend.onrender.com/employee/${user.email}`;
-      }
+      let url = user.role === 'admin'
+        ? 'https://mabe-backend.onrender.com/employees'
+        : `https://mabe-backend.onrender.com/employee/${user.email}`;
 
       try {
         const res = await fetch(url);
         const data = await res.json();
-
         employeeListEl.innerHTML = '';
 
         if (user.role === 'admin') {
@@ -118,7 +139,6 @@
           });
         } else {
           employeeListEl.appendChild(createUserListItem(data));
-          // Show employee's own status
           if (data.status === 'online') {
             document.getElementById('status-msg').textContent = '✅ You are online';
           }
@@ -128,9 +148,6 @@
       }
     }
 
-    loadEmployees();
-
-    // Tell server we're online
     socket.emit('login', user.email);
 
     socket.on('userStatusUpdate', (users) => {
@@ -141,6 +158,8 @@
         });
       }
     });
+
+    loadEmployees();
   </script>
 </body>
 </html>
