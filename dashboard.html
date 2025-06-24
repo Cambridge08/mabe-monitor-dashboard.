@@ -68,7 +68,7 @@
   <!-- Scripts -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io('https://mabe-backend.onrender.com');
+    const socket = io('https://your-backend-url-here'); // Change this to your backend URL, e.g. localhost:5000 or your deployed URL
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
       alert('You are not logged in!');
@@ -82,16 +82,16 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      fetch(`https://mabe-backend.onrender.com/clockout/${user.email}`, {
-        method: 'POST'
-      }).then(() => {
-        socket.emit('logout', user.email);
-        localStorage.removeItem('user');
-        window.location.href = '/';
-      }).catch((err) => {
-        console.error('Clock-out failed', err);
-        alert('Clock-out failed. Try again.');
-      });
+      fetch(`https://your-backend-url-here/clockout/${user.email}`, { method: 'POST' })
+        .then(() => {
+          socket.emit('logout', user.email);
+          localStorage.removeItem('user');
+          window.location.href = '/';
+        })
+        .catch((err) => {
+          console.error('Clock-out failed', err);
+          alert('Clock-out failed. Try again.');
+        });
     });
 
     const employeeListEl = document.getElementById('employee-list');
@@ -114,8 +114,8 @@
 
     async function loadEmployees() {
       const url = user.role === 'admin'
-        ? 'https://mabe-backend.onrender.com/employees'
-        : `https://mabe-backend.onrender.com/employee/${user.email}`;
+        ? 'https://your-backend-url-here/employees'
+        : `https://your-backend-url-here/employee/${user.email}`;
 
       try {
         const res = await fetch(url);
@@ -142,7 +142,6 @@
     loadEmployees();
     socket.emit('login', user.email);
 
-    // FIXED STATUS UPDATE SOCKET
     socket.on('userStatusUpdate', () => {
       loadEmployees();
     });
@@ -154,7 +153,7 @@
       const newEmployee = Object.fromEntries(formData.entries());
 
       try {
-        const res = await fetch('https://mabe-backend.onrender.com/add-employee', {
+        const res = await fetch('https://your-backend-url-here/add-employee', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newEmployee)
