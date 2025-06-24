@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
+<!DOCTYPE html><html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -17,10 +16,7 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-
-  <!-- Navbar -->
-  <header class="bg-blue-800 text-white py-4 px-6 flex justify-between items-center shadow-md">
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">  <!-- Navbar -->  <header class="bg-blue-800 text-white py-4 px-6 flex justify-between items-center shadow-md">
     <div class="flex items-center space-x-3">
       <div class="bg-white text-blue-800 font-bold rounded-full w-10 h-10 flex items-center justify-center">M</div>
       <span class="text-xl font-semibold">Mabe Monitor</span>
@@ -29,41 +25,34 @@
       <p id="user-info"></p>
       <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded ml-2 text-sm font-semibold">Clock Out & Logout</button>
     </div>
-  </header>
+  </header>  <!-- Content -->  <main class="flex-grow container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold">Employee List</h2>
+      <button id="toggleTheme" class="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium">Toggle Theme</button>
+    </div><div id="status-msg" class="mb-4 text-green-500 text-center font-semibold"></div>
+<ul id="employee-list" class="space-y-4"></ul>
 
-  <!-- Content -->
-  <main class="flex-grow container mx-auto px-4 py-6">
-    <h2 class="text-2xl font-semibold mb-4">Employee List</h2>
-    <div id="status-msg" class="mb-4 text-green-500 text-center font-semibold"></div>
-    <ul id="employee-list" class="space-y-4"></ul>
+<!-- Admin Section -->
+<div id="add-employee-section" class="mt-10 bg-white dark:bg-gray-800 p-6 rounded shadow-md" style="display: none;">
+  <h2 class="text-xl font-semibold mb-4">➕ Add New Employee</h2>
+  <form id="add-employee-form" class="space-y-4">
+    <input type="text" name="name" placeholder="Full Name" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
+    <input type="email" name="email" placeholder="Email" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
+    <input type="password" name="password" placeholder="Password" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
+    <select name="role" required class="w-full px-4 py-2 border rounded dark:bg-gray-900">
+      <option value="employee">Employee</option>
+      <option value="admin">Admin</option>
+    </select>
+    <input type="text" name="department" placeholder="Department (optional)" class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
+    <input type="text" name="position" placeholder="Position (optional)" class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
+    <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded">Add Employee</button>
+  </form>
+  <div id="add-result" class="mt-4 text-green-500 font-semibold"></div>
+</div>
 
-    <!-- Admin Section -->
-    <div id="add-employee-section" class="mt-10 bg-white dark:bg-gray-800 p-6 rounded shadow-md" style="display: none;">
-      <h2 class="text-xl font-semibold mb-4">➕ Add New Employee</h2>
-      <form id="add-employee-form" class="space-y-4">
-        <input type="text" name="name" placeholder="Full Name" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
-        <input type="email" name="email" placeholder="Email" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
-        <input type="password" name="password" placeholder="Password" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
-        <select name="role" required class="w-full px-4 py-2 border rounded dark:bg-gray-900">
-          <option value="employee">Employee</option>
-          <option value="admin">Admin</option>
-        </select>
-        <input type="text" name="department" placeholder="Department (optional)" class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
-        <input type="text" name="position" placeholder="Position (optional)" class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
-        <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded">Add Employee</button>
-      </form>
-      <div id="add-result" class="mt-4 text-green-500 font-semibold"></div>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-center py-4 text-sm border-t border-gray-300 dark:border-gray-700">
+  </main>  <!-- Footer -->  <footer class="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-center py-4 text-sm border-t border-gray-300 dark:border-gray-700">
     Mabe Monitor Proprietary License © 2025 <strong>Cambridge Mabe</strong> | Mabe Group. All rights reserved.
-  </footer>
-
-  <!-- Scripts -->
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
+  </footer>  <!-- Scripts -->  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>  <script>
     const socket = io('https://mabe-backend.onrender.com');
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
@@ -88,6 +77,10 @@
         console.error('Clock-out failed', err);
         alert('Clock-out failed. Try again.');
       });
+    });
+
+    document.getElementById('toggleTheme').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
     });
 
     const employeeListEl = document.getElementById('employee-list');
@@ -174,6 +167,5 @@
         console.error(err);
       }
     });
-  </script>
-</body>
+  </script></body>
 </html>
