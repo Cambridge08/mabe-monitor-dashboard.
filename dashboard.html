@@ -68,7 +68,10 @@
   <!-- Scripts -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io('https://your-backend-url-here'); // Change this to your backend URL, e.g. localhost:5000 or your deployed URL
+    // Update this URL to your backend URL if needed:
+    const BACKEND_URL = 'http://localhost:3000';
+
+    const socket = io(BACKEND_URL);
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
       alert('You are not logged in!');
@@ -82,7 +85,7 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      fetch(`https://your-backend-url-here/clockout/${user.email}`, { method: 'POST' })
+      fetch(`${BACKEND_URL}/clockout/${user.email}`, { method: 'POST' })
         .then(() => {
           socket.emit('logout', user.email);
           localStorage.removeItem('user');
@@ -114,8 +117,8 @@
 
     async function loadEmployees() {
       const url = user.role === 'admin'
-        ? 'https://your-backend-url-here/employees'
-        : `https://your-backend-url-here/employee/${user.email}`;
+        ? `${BACKEND_URL}/employees`
+        : `${BACKEND_URL}/employee/${user.email}`;
 
       try {
         const res = await fetch(url);
@@ -153,7 +156,7 @@
       const newEmployee = Object.fromEntries(formData.entries());
 
       try {
-        const res = await fetch('https://your-backend-url-here/add-employee', {
+        const res = await fetch(`${BACKEND_URL}/add-employee`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newEmployee)
