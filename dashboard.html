@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mabe Monitor | Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,21 +15,6 @@
     body {
       font-family: 'Inter', sans-serif;
     }
-    /* Weekday color codes */
-    .day-cell {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      cursor: default;
-    }
-    .status-present { background-color: #22c55e; color: white; } /* green */
-    .status-awop { background-color: #ef4444; color: white; } /* red */
-    .status-leave { background-color: #f97316; color: white; } /* orange */
-    .status-none { background-color: #9ca3af; color: white; } /* gray */
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
@@ -37,7 +22,11 @@
   <!-- Navbar -->
   <header class="bg-blue-800 text-white py-4 px-6 flex justify-between items-center shadow-md">
     <div class="flex items-center space-x-3">
-      <div class="bg-white text-blue-800 font-bold rounded-full w-10 h-10 flex items-center justify-center select-none">M</div>
+      <svg width="40" height="40" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mabe Group Logo" class="flex-shrink-0">
+        <circle cx="32" cy="32" r="32" fill="#1e40af"/>
+        <text x="32" y="46" text-anchor="middle" fill="white" font-family="Inter, sans-serif" font-weight="800" font-size="40" letter-spacing="-3">M</text>
+        <text x="32" y="38" text-anchor="middle" fill="#1e40af" font-family="Inter, sans-serif" font-weight="700" font-size="18" letter-spacing="0">G</text>
+      </svg>
       <span class="text-xl font-semibold select-none">Mabe Monitor</span>
     </div>
     <div class="text-sm text-right">
@@ -48,55 +37,12 @@
 
   <!-- Content -->
   <main class="flex-grow container mx-auto px-4 py-6">
-
-    <!-- User Controls -->
-    <section id="user-controls" class="mb-6 flex gap-4 items-center">
-      <button id="clockInBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold">Clock In</button>
-      <button id="clockOutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-semibold">Clock Out</button>
-      <button id="toggleTheme" class="ml-auto bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium">Toggle Theme</button>
-    </section>
-
-    <!-- Attendance Weekly View -->
-    <section id="attendance-weekly" class="mb-8">
-      <h2 class="text-2xl font-semibold mb-2">Weekly Attendance</h2>
-      <div class="flex space-x-2 text-center select-none">
-        <div class="day-cell font-bold">Mon</div>
-        <div class="day-cell font-bold">Tue</div>
-        <div class="day-cell font-bold">Wed</div>
-        <div class="day-cell font-bold">Thu</div>
-        <div class="day-cell font-bold">Fri</div>
-        <div class="day-cell font-bold">Sat</div>
-        <div class="day-cell font-bold">Sun</div>
-      </div>
-      <div id="week-status" class="flex space-x-2 mt-1"></div>
-    </section>
-
-    <!-- Attendance History -->
-    <section id="attendance-history" class="mb-10">
-      <h2 class="text-2xl font-semibold mb-2">Attendance History</h2>
-      <table class="w-full text-left border-collapse border border-gray-300 dark:border-gray-700 rounded">
-        <thead class="bg-gray-200 dark:bg-gray-800">
-          <tr>
-            <th class="border border-gray-300 dark:border-gray-700 px-3 py-2">Date</th>
-            <th class="border border-gray-300 dark:border-gray-700 px-3 py-2">Type</th>
-            <th class="border border-gray-300 dark:border-gray-700 px-3 py-2">Clock In</th>
-            <th class="border border-gray-300 dark:border-gray-700 px-3 py-2">Clock Out</th>
-            <th class="border border-gray-300 dark:border-gray-700 px-3 py-2">Notes</th>
-          </tr>
-        </thead>
-        <tbody id="history-body"></tbody>
-      </table>
-    </section>
-
-    <!-- Employee List -->
-    <section>
-      <h2 class="text-2xl font-semibold mb-4">Employee List</h2>
-      <div id="status-msg" class="mb-4 text-green-500 text-center font-semibold"></div>
-      <ul id="employee-list" class="space-y-4"></ul>
-    </section>
+    <h2 class="text-2xl font-semibold mb-4">Employee List</h2>
+    <div id="status-msg" class="mb-4 text-green-500 text-center font-semibold"></div>
+    <ul id="employee-list" class="space-y-4"></ul>
 
     <!-- Admin Section -->
-    <section id="add-employee-section" class="mt-10 bg-white dark:bg-gray-800 p-6 rounded shadow-md" style="display: none;">
+    <div id="add-employee-section" class="mt-10 bg-white dark:bg-gray-800 p-6 rounded shadow-md" style="display: none;">
       <h2 class="text-xl font-semibold mb-4">➕ Add New Employee</h2>
       <form id="add-employee-form" class="space-y-4">
         <input type="text" name="name" placeholder="Full Name" required class="w-full px-4 py-2 border rounded dark:bg-gray-900" />
@@ -111,8 +57,7 @@
         <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded">Add Employee</button>
       </form>
       <div id="add-result" class="mt-4 text-green-500 font-semibold"></div>
-    </section>
-
+    </div>
   </main>
 
   <!-- Footer -->
@@ -120,6 +65,7 @@
     Mabe Monitor Proprietary License © 2025 <strong>Cambridge Mabe</strong> | Mabe Group. All rights reserved.
   </footer>
 
+  <!-- Scripts -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
     const socket = io('https://mabe-backend.onrender.com');
@@ -136,157 +82,18 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      fetch(`https://mabe-backend.onrender.com/clockout/${user.email}`, { method: 'POST' })
-      .then(() => {
+      fetch(`https://mabe-backend.onrender.com/clockout/${user.email}`, {
+        method: 'POST'
+      }).then(() => {
         socket.emit('logout', user.email);
         localStorage.removeItem('user');
         window.location.href = '/';
-      }).catch(err => {
+      }).catch((err) => {
         console.error('Clock-out failed', err);
         alert('Clock-out failed. Try again.');
       });
     });
 
-    document.getElementById('toggleTheme').addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-    });
-
-    // Attendance data model example (would come from backend)
-    // Each attendance record: { date, type, clockIn, clockOut, notes }
-    // type: 'present', 'awop', 'leave', 'off'
-    
-    // For demo, generate sample data for the last 7 days for current user
-    function getLast7Days() {
-      const days = [];
-      const today = new Date();
-      for(let i=6; i>=0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        days.push(d);
-      }
-      return days;
-    }
-
-    // Utility: format date YYYY-MM-DD
-    function formatDate(date) {
-      return date.toISOString().split('T')[0];
-    }
-
-    // Status color mapping
-    const statusClassMap = {
-      'present': 'status-present',
-      'awop': 'status-awop',
-      'leave': 'status-leave',
-      'off': 'status-none'
-    };
-
-    // Fetch employee attendance history from backend
-    async function fetchAttendanceHistory(email) {
-      const res = await fetch(`https://mabe-backend.onrender.com/attendance/${email}`);
-      if (!res.ok) throw new Error('Failed to fetch attendance');
-      return res.json();
-    }
-
-    // Render weekly attendance boxes for the current user
-    async function renderWeeklyAttendance() {
-      const weekStatusEl = document.getElementById('week-status');
-      weekStatusEl.innerHTML = '';
-
-      try {
-        const attendanceHistory = await fetchAttendanceHistory(user.email);
-        const last7Days = getLast7Days();
-
-        last7Days.forEach(day => {
-          const dayStr = formatDate(day);
-          const record = attendanceHistory.find(r => r.date === dayStr);
-
-          let status = 'off'; // default no record
-          if (record) status = record.type;
-
-          const div = document.createElement('div');
-          div.classList.add('day-cell', statusClassMap[status]);
-          div.title = `${day.toDateString()} - ${status.toUpperCase()}`;
-          div.textContent = day.getDate();
-          weekStatusEl.appendChild(div);
-        });
-      } catch (err) {
-        console.error(err);
-        weekStatusEl.textContent = 'Failed to load attendance.';
-      }
-    }
-
-    // Render detailed attendance history table for current user
-    async function renderAttendanceHistory() {
-      const tbody = document.getElementById('history-body');
-      tbody.innerHTML = '';
-
-      try {
-        const attendanceHistory = await fetchAttendanceHistory(user.email);
-        attendanceHistory.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-        attendanceHistory.forEach(record => {
-          const tr = document.createElement('tr');
-          tr.className = 'border border-gray-300 dark:border-gray-700';
-
-          const dateTD = document.createElement('td');
-          dateTD.className = 'border border-gray-300 dark:border-gray-700 px-3 py-2';
-          dateTD.textContent = record.date;
-
-          const typeTD = document.createElement('td');
-          typeTD.className = 'border border-gray-300 dark:border-gray-700 px-3 py-2 capitalize';
-          typeTD.textContent = record.type;
-
-          const clockInTD = document.createElement('td');
-          clockInTD.className = 'border border-gray-300 dark:border-gray-700 px-3 py-2';
-          clockInTD.textContent = record.clockIn ? new Date(record.clockIn).toLocaleTimeString() : '-';
-
-          const clockOutTD = document.createElement('td');
-          clockOutTD.className = 'border border-gray-300 dark:border-gray-700 px-3 py-2';
-          clockOutTD.textContent = record.clockOut ? new Date(record.clockOut).toLocaleTimeString() : '-';
-
-          const notesTD = document.createElement('td');
-          notesTD.className = 'border border-gray-300 dark:border-gray-700 px-3 py-2';
-          notesTD.textContent = record.notes || '';
-
-          tr.append(dateTD, typeTD, clockInTD, clockOutTD, notesTD);
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error(err);
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Failed to load attendance history.</td></tr>';
-      }
-    }
-
-    // Clock In / Clock Out buttons
-    document.getElementById('clockInBtn').addEventListener('click', async () => {
-      try {
-        const res = await fetch(`https://mabe-backend.onrender.com/clockin/${user.email}`, { method: 'POST' });
-        if (!res.ok) throw new Error('Clock In failed');
-        await loadEmployees();
-        await renderWeeklyAttendance();
-        await renderAttendanceHistory();
-        alert('Clocked in successfully!');
-      } catch (err) {
-        console.error(err);
-        alert('Clock In failed');
-      }
-    });
-
-    document.getElementById('clockOutBtn').addEventListener('click', async () => {
-      try {
-        const res = await fetch(`https://mabe-backend.onrender.com/clockout/${user.email}`, { method: 'POST' });
-        if (!res.ok) throw new Error('Clock Out failed');
-        await loadEmployees();
-        await renderWeeklyAttendance();
-        await renderAttendanceHistory();
-        alert('Clocked out successfully!');
-      } catch (err) {
-        console.error(err);
-        alert('Clock Out failed');
-      }
-    });
-
-    // Employee List & Admin Controls (unchanged)
     const employeeListEl = document.getElementById('employee-list');
     const statusMsgEl = document.getElementById('status-msg');
 
@@ -332,23 +139,41 @@
       }
     }
 
-    // Initialize all on page load
     loadEmployees();
-    renderWeeklyAttendance();
-    renderAttendanceHistory();
     socket.emit('login', user.email);
 
-    socket.on('userStatusUpdate', (users) => {
-      if (user.role === 'admin') {
-        employeeListEl.innerHTML = '';
-        users.forEach(emp => {
-          employeeListEl.appendChild(createUserListItem(emp));
-        });
-      }
+    // FIXED STATUS UPDATE SOCKET
+    socket.on('userStatusUpdate', () => {
+      loadEmployees();
     });
 
-    // Add Employee form handler
     document.getElementById('add-employee-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
-      const form
+      const formData = new FormData(form);
+      const newEmployee = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('https://mabe-backend.onrender.com/add-employee', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEmployee)
+        });
+
+        const data = await res.json();
+        document.getElementById('add-result').textContent = data.message;
+
+        if (res.ok) {
+          form.reset();
+          loadEmployees();
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        alert('Failed to add employee');
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
